@@ -1,5 +1,36 @@
 # CTF笔记
-## 一.流量分析与取证
+## 一.隐写技术
+### 1.二维码
+---
+下载文件解压里面是二维码的图片<br>
+![图片](./images/QRcode/QR.png)<br>
+扫描出来<br>
+![扫描](./images/QRcode/content.png)
+写的secret is here,但不是flag,所以可能是用图片隐写技术隐藏了信息，放进kali用foremost看看
+![foremost](./images/QRcode/fm.png)
+foremost出来一个zip文件，里面有4number.txt，需要密码，发现也不是secret is here，看wp发现要爆破，4number代表4位数字
+![爆破](./images/QRcode/bp.png)
+把7639输进去打开txt
+![答案](./images/QRcode/ans.png)
+包上flag{}发现不对，把CTF换成flag就对了
+
+### 2.大白
+![图片](./images/dabai/dabai.png)
+下载题目提供的文件，发现是一张大白的图片
+![图片](./images/dabai/im.png)
+根据题目提示“是不是屏幕太小了”推测图片大小被修改了，用010editor打开<br>
+![图片](./images/dabai/err.png)
+发现提示CRC Mismatch（最下面黄色条）<br>
+***
+**知识点：*对一张正常的图片，通过修改其宽度或者高度隐藏信息，使计算出的CRC校验码与原图的CRC校验码不一致；windows的图片查看器会忽略错误的CRC校验码，因此会显示图片，但此时的图片已经是修改过的，所以会有显示不全或扭曲等情况，借此可以隐藏信息。***<br>
+***
+![图片](./images/dabai/fix.png)
+找到宽高位置，把高度256改为和宽度一样的679，保存图片后再次打开
+![图片](./images/dabai/ans.png)
+多出来一大块透明区域显然调多了（<br>
+但无所谓答案已经出来了（<br>
+把flag{He1l0_d4_ba1}交上去就好啦
+## 二.流量分析与取证
 ### 1.大流量分析
 #### (1)
 
@@ -57,16 +88,3 @@
 ![解压](./images/caidao/flag.png)
 把flag{3OpWdJ-JP6FzK-koCMAK-VkfWBq-75Un2z}交上去就ok了
 
-## 二.隐写技术
-### 1.二维码
-下载文件解压里面是二维码的图片<br>
-![图片](./images/QRcode/QR.png)<br>
-扫描出来
-![扫描](./images/QRcode/content.png)
-写的secret is here,但不是flag,所以可能是用图片隐写技术隐藏了信息，放进kali用foremost看看
-![foremost](./images/QRcode/fm.png)
-foremost出来一个zip文件，里面有4number.txt，需要密码，发现也不是secret is here，看wp发现要爆破，4number代表4位数字
-![爆破](./images/QRcode/bp.png)
-把7639输进去打开txt
-![答案](./images/QRcode/ans.png)
-包上flag{}发现不对，把CTF换成flag就对了
