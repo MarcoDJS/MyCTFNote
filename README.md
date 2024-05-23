@@ -22,7 +22,7 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ![图片](./images/dabai/err.png)<br>
 发现提示CRC Mismatch（最下面黄色条）<br>
 ***
-**知识点：*对一张正常的图片，通过修改其宽度或者高度隐藏信息，使计算出的CRC校验码与原图的CRC校验码不一致；windows的图片查看器会忽略错误的CRC校验码，因此会显示图片，但此时的图片已经是修改过的，所以会有显示不全或扭曲等情况，借此可以隐藏信息。***<br>
+**知识点.CRC校验：*对一张正常的图片，通过修改其宽度或者高度隐藏信息，使计算出的CRC校验码与原图的CRC校验码不一致；windows的图片查看器会忽略错误的CRC校验码，因此会显示图片，但此时的图片已经是修改过的，所以会有显示不全或扭曲等情况，借此可以隐藏信息。***<br>
 ***
 ![图片](./images/dabai/fix.png)<br>
 找到宽高位置，把高度256改为和宽度一样的679，保存图片后再次打开<br>
@@ -30,6 +30,23 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 多出来一大块透明区域显然调多了（<br>
 但无所谓答案已经出来了（<br>
 把flag{He1l0_d4_ba1}交上去就好啦<br>
+
+### 3.LSB
+下载图片<br>
+![图片](./images/LSB/raw.png)<br>
+用之前的方法都无效，只能去找wp，发现题目LSB本身就是提示
+***
+**知识点.LSB隐写：*LSB即为最低有效位（Least Significant Bit），图片中的图像像素一般是由RGB三原色（红绿蓝）组成，每一种颜色占用8位，取值范围为0x00~0xFF，RGB颜色分量的最低二进制位也就是最低有效位（LSB），人类的眼睛不会注意到修改前后的变化，每个像数可以携带3比特的信息。由于是最低位隐写，所以应当提取Red，Green，和Blue的0通道信息***
+***
+用StegSolve打开图片，在Analyse中选择Data Extract<br>
+![图片](./images/LSB/stegsolve.png)<br>
+打开后勾选Red，Green，和Blue的0通道后预览<br>
+![图片](./images/LSB/lsb.png)<br>
+发现开头结尾都没有文本隐写，推测是图片隐写，选择Save Bin导出图片为1.png<br>
+![图片](./images/LSB/qr.png)<br>
+发现是一个二维码，扫描得到flag
+![图片](./images/LSB/ans.png)<br>
+提交flag{1sb_i4_s0_Ea4y}
 ## 二.流量分析与取证
 ### 1.大流量分析
 #### (1)
