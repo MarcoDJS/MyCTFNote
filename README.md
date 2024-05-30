@@ -1,12 +1,12 @@
 # CTF笔记
-## 一.隐写技术
+## 一.隐写
 ### 1.二维码
 ---
 下载文件解压里面是二维码的图片<br>
 ![图片](./images/QRcode/QR.png)<br>
 扫描出来<br>
 ![扫描](./images/QRcode/content.png)<br>
-写的secret is here,但不是flag,所以可能是用图片隐写技术隐藏了信息，放进kali用foremost看看<br>
+写的secret is here,但不是flag,所以可能是用隐写技术隐藏了信息，放进kali用foremost看看<br>
 ![foremost](./images/QRcode/fm.png)<br>
 foremost出来一个zip文件，里面有4number.txt，需要密码，发现也不是secret is here，看wp发现要爆破，4number代表4位数字<br>
 ![爆破](./images/QRcode/bp.png)<br>
@@ -15,16 +15,16 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 包上flag{}发现不对，把CTF换成flag就对了<br>
 
 ### 2.大白
-![图片](./images/dabai/dabai.png)<br>
+![题目](./images/dabai/dabai.png)<br>
 下载题目提供的文件，发现是一张大白的图片<br>
 ![图片](./images/dabai/im.png)<br>
 根据题目提示“是不是屏幕太小了”推测图片大小被修改了，用010editor打开<br>
-![图片](./images/dabai/err.png)<br>
+![CRC](./images/dabai/err.png)<br>
 发现提示CRC Mismatch（最下面黄色条）<br>
 ***
 **知识点.CRC校验：*对一张正常的图片，通过修改其宽度或者高度隐藏信息，使计算出的CRC校验码与原图的CRC校验码不一致；windows的图片查看器会忽略错误的CRC校验码，因此会显示图片，但此时的图片已经是修改过的，所以会有显示不全或扭曲等情况，借此可以隐藏信息。***<br>
 ***
-![图片](./images/dabai/fix.png)<br>
+![修改](./images/dabai/fix.png)<br>
 找到宽高位置，把高度256改为和宽度一样的679，保存图片后再次打开<br>
 ![图片](./images/dabai/ans.png)<br>
 多出来一大块透明区域显然调多了（<br>
@@ -39,14 +39,29 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 **知识点.LSB隐写：*LSB即为最低有效位（Least Significant Bit），图片中的图像像素一般是由RGB三原色（红绿蓝）组成，每一种颜色占用8位，取值范围为0x00~0xFF，RGB颜色分量的最低二进制位也就是最低有效位（LSB），人类的眼睛不会注意到修改前后的变化，每个像数可以携带3比特的信息。由于是最低位隐写，所以应当提取Red，Green，和Blue的0通道信息***
 ***
 用StegSolve打开图片，在Analyse中选择Data Extract<br>
-![图片](./images/LSB/stegsolve.png)<br>
+![Steg](./images/LSB/stegsolve.png)<br>
 打开后勾选Red，Green，和Blue的0通道后预览<br>
-![图片](./images/LSB/lsb.png)<br>
+![修改](./images/LSB/lsb.png)<br>
 发现开头结尾都没有文本隐写，推测是图片隐写，选择Save Bin导出图片为1.png<br>
-![图片](./images/LSB/qr.png)<br>
+![QR](./images/LSB/qr.png)<br>
 发现是一个二维码，扫描得到flag
-![图片](./images/LSB/ans.png)<br>
+![答案](./images/LSB/ans.png)<br>
 提交flag{1sb_i4_s0_Ea4y}
+
+### 4.zip伪加密
+下载压缩包之后发现需要密码，唯一的提示是题干的伪加密<br>
+![题目](./images/ZIP/t.png)<br>
+
+***
+**知识点.伪加密：*伪加密是在文件头的加密标记位做修改，0000代表未加密，0900代表加密，进而再打开文件时识被别为加密压缩包***<br>
+![标记位](./images/ZIP/mark.png)<br>
+***一般的伪加密会将目录文件的文件头中，也就是将0102后面的全局方式位标记0000改为0900从而达到被识别为加密文件但又无密码的效果，更逼真的伪加密是将0304后面的全局方式位标记也改为0900***<br>
+***
+所以为了将伪加密改为未加密，用010editor打开zip文件，将两处0900都改回0000<br>
+![修改](./images/ZIP/fix.png)<br>
+保存后压缩包就没有密码可以直接打开了
+![答案](./images/ZIP/ans.png)<br>
+最后提交flag{Adm1N-B2G-kU-SZIP}！
 ## 二.流量分析与取证
 ### 1.大流量分析
 #### (1)
