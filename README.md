@@ -62,6 +62,21 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 保存后压缩包就没有密码可以直接打开了
 ![答案](./images/ZIP/ans.png)<br>
 最后提交flag{Adm1N-B2G-kU-SZIP}！
+
+### 5.FLAG
+下载图片<br>
+![题目](./images/FLAG/img.png)<br>
+试了各种方法，发现是steg的隐写
+![LSB](./images/FLAG/lsb.png)<br>
+***
+**知识点.*<br>ZIP文件头:504B0304<br>RAR文件头：52617221<br>JPG文件头：FFD8FF<br>PNG文件头：89504E47<br>***
+***
+看文件头发现是zip文件，所以保存为zip文件，但压缩包损坏（下载了一个nb的压缩软件损坏了照样解压，太凶了），解压出来发现是一个1，但没有后缀，用txt打开发现是乱的
+![解压](./images/FLAG/zip.png)<br>
+用IDA（新学到的静态反编译软件）打开
+![IDA](./images/FLAG/ida.png)<br>
+![IDA](./images/FLAG/ans.png)<br>
+找到flag{dd0gf4c3tok3yb0ard4g41n~~~}！
 ## 二.流量分析与取证
 ### 1.大流量分析
 #### (1)
