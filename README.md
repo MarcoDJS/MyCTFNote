@@ -77,6 +77,37 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ![IDA](./images/FLAG/ida.png)<br>
 ![IDA](./images/FLAG/ans.png)<br>
 找到flag{dd0gf4c3tok3yb0ard4g41n~~~}！
+
+### 6.面具下的flag
+下载图片<br>
+![题干](./images/mask/picture.png)<br>
+居然是君名，果然学计算机的二刺螈浓度比较高（<br>
+放到kali里面binwalk一下<br>
+![题干](./images/mask/binwalk.png)<br>
+***
+**知识点.*<br>Binwalk更适合用于嵌入式设备固件的分析和逆向工程，能够识别和提取固件中的嵌入文件、压缩包和文件系统;<br>
+Foremost更适合用于一般文件系统和磁盘镜像的文件恢复，特别是从已删除或损坏的存储介质中恢复文件<br>
+如果主要目标是分析固件镜像并提取其中的文件，binwalk 是更好的选择;
+如果需要从磁盘镜像或文件系统中恢复已删除或丢失的文件，foremost 会更适合需求<br>***
+***
+![题干](./images/mask/rst.png)<br>
+用7z将.zip文件解压<br>
+![zip](./images/mask/zip.png)<br>
+发现提示文件头错误，但还是能解压出东西，不过和另外一个flag.vmdk一样<br>
+***
+**知识点.<br>*vmdk文件是 VMware 虚拟磁盘文件，代表虚拟机（VM）的硬盘驱动器。这种文件格式是由 VMware 开发的，用于在虚拟机环境中存储操作系统、应用程序和数据。其中vmdk可以用7z解压<br>***
+***
+用7z解压vmdk<br>
+![vmdk](./images/mask/vmdk.png)<br>
+发现有key的两个part，打开part1<br>
+![Brainfuck](./images/mask/bf.png)<br>
+发现是Brainfuck编码，去翻译一下
+![unBrainfuck](./images/mask/trans1.png)<br>
+打开part2<br>
+![Ook](./images/mask/ook.png)<br>
+发现是Ook编码，去翻译一下
+![unOok](./images/mask/trans2.png)<br>
+把flag{N7F5_AD5_i5_funny!}提交上去就对了!<br>
 ## 二.流量分析与取证
 ### 1.大流量分析
 #### (1)
