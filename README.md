@@ -166,3 +166,17 @@ Foremost更适合用于一般文件系统和磁盘镜像的文件恢复，特别
 ![解压](./images/caidao/flag.png)<br>
 把flag{3OpWdJ-JP6FzK-koCMAK-VkfWBq-75Un2z}交上去就ok了<br>
 
+## 三.Web
+### 1.Havingfun
+打开靶机和网站，发现只有一只猫猫（可爱捏）
+![图片](./images/Havingfun/cat.png)<br>
+网页本身没有可交互的地方，所以打开开发者工具做一下代码审计
+![开发人员工具](./images/Havingfun/check.png)<br>
+![代码](./images/Havingfun/code.png)<br>
+***
+**知识点.<br>*在php语法中，$_GET表示当用户访问一个URL并在其后附带查询字符串（即?key=value的形式）时，服务器通过GET请求接收数据。这些数据会自动被存储在$_GET数组中。<br>*例如：![示例](./images/Havingfun/get.png)<br>**
+***
+发现当cat=dog的时候会输出一些东西<br>
+因此可以构造payload在网页地址栏输入/?cat=dog来查询变量cat=值dog时的情况
+![注入](./images/Havingfun/flag.png)<br>
+找到flag{a600ead9-034e-4805-a831-7463b7e4dd82}提交
