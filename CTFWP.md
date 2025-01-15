@@ -41,3 +41,149 @@ txt文件
 由于这是2023年的LitCTF的题，所以这个Commit记录肯定是23年之前的，最后在图示commit记录中找到了flag
 ![alt text](image-16.png)
 ![alt text](image-17.png)
+## 1.15 进阶, MISC, Programming
+### 一.寻找黑客的家
+大黑客Mikato期末结束就迫不及待的回了家，并在朋友圈发出了“这次我最早”的感叹。那么你能从这条朋友圈找到他的位置吗？
+moectf{照片拍摄地市名区名路名} (字母均小写)<br>
+例如：西安市长安区西沣路：{xian_changan_xifeng}
+![alt text](image-18.png)
+![alt text](image-19.png)
+看到最显眼的汉明宫，去搜索
+![alt text](image-20.png)
+发现第一个的电话号码符合末尾的33085，直接搜索清泉路星光城购物中心
+![alt text](image-21.png)
+发现在广东省深圳市龙华区清泉路<br>
+提交{shenzhen_longhua_qingquan}
+### 二.zip套娃
+![alt text](image-23.png)
+看起来是真加密，直接爆破
+![alt text](image-22.png)
+用密码1235解压，打开txt
+![alt text](image-24.png)
+
+然后用“1234567???”的掩码格式去爆破fl<br>
+***
+注：掩码攻击‌是一种密码破解方法，它利用密码的部分已知信息，定义一个密码格式或模板，进行破解
+***
+![alt text](image-25.png)
+用1234567qwq解压fl
+![alt text](image-26.png)
+同样的txt，但这次掩码爆不出来fla，去010editor看看
+![alt text](image-27.png)
+明显的伪加密，把这一位01改为00后保存就可以打开了
+![alt text](image-28.png)
+### 三.最终试炼hhh
+![alt text](image-29.png)
+是一个没有后缀名的文件，直接用记事本打开也是乱码,用010editor打开
+![alt text](image-30.png)
+文件头没有特征，翻到最后发现文件尾是04 04 4B 50，即ZIP文件头的逆序，
+推测该文件是一个zip文件的逆序，编写python程序
+```python
+my_input = open('./flag', 'rb')  # 'wb' :（write binary）,文件内容以字节的形式读取
+input_all = my_input.read()  # 这是一个包含文件所有字节内容的 bytes 对象
+my_reversed = input_all[::-1]
+output = open('./flag.zip', 'wb')
+output.write(my_reversed)
+my_input.close()
+output.close()
+```
+***
+语法注释:<br>
+[start:stop:step]，其中 step 表示步长。<br>
+[::-1]：这是一个简便的方式，用于反转序列。具体来说，它从序列的末尾开始，以步长 -1 逐步取值，直到序列的开头。
+***
+输出了一个zip文件，需要密码，再用010打开查看
+![alt text](image-31.png)
+这里是00，说明是伪加密，到下一段将90修改为00
+![alt text](image-32.png)
+解压出来一个pdf
+![alt text](image-33.png)
+猜测可能用这个pdf文件做了隐写，用wbStego查看隐写
+![alt text](image-34.png)
+找到flag
+![alt text](image-35.png)
+### 四.misc999
+![alt text](image-36.png)
+表中一共62个字符，编写base62解码代码
+```python
+from Crypto.Util.number import long_to_bytes
+
+# 创建字符到索引的映射
+mapper = {c: i for i, c in enumerate("9876543210qwertyuiopasdfghjklzxcvbnmMNBVCXZLKJHGFDSAPOIUYTREWQ")}
+
+# 初始化整数
+n = 0
+
+# Base62 编码的字符串
+encoded_str = "7dFRjPItGFkeXAALp6GMKE9Y4R4BuNtIUK1RECFlU4f3PomCzGnfemFvO"
+
+# 将 Base62 编码的字符串转换为整数
+for c in encoded_str:
+    if c in mapper:
+        n *= 62
+        n += mapper[c]
+    else:
+        raise ValueError(f"Character '{c}' not found in mapper.")
+
+# 将整数转换为字节，并解码为字符串
+try:
+    decoded_bytes = long_to_bytes(n)
+    decoded_str = decoded_bytes.decode('utf-8')
+    print(decoded_str)
+except UnicodeDecodeError:
+    print("解码失败：字节序列不是有效的 UTF-8 编码。")
+```
+![alt text](image-37.png)
+解出flag
+### 五.Case64AR
+Someone script kiddie just invented a new encryption scheme. It is described as a blend of modern and ancient cryptographic techniques. Can you prove that the encryption scheme is insecure by decoding the ciphertext below?
+
+Ciphertext: OoDVP4LtFm7lKnHk+JDrJo2jNZDROl/1HH77H5Xv
+
+即这是一个融合了现代和古典密码的加密方法需要我们破解，密文具有明显base64特征，结合Case64AR这个名字推测古典密码用的Caesar，猜测是在映射时有和凯撒密码相同原理的偏移，编写代码遍历所有可能的偏移量
+```python
+import base64
+
+# 标准 Base64 编码表（不包括 '='）
+base64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+# 加密的字符串
+enc = 'OoDVP4LtFm7lKnHk+JDrJo2jNZDROl/1HH77H5Xv'
+
+# 遍历所有可能的偏移量
+for n in range(64):
+    dec = ""  # 用于存储当前偏移量下的 Base64 编码结果
+
+    # 遍历密文中的每个字符
+    for char in enc:
+        # 找到字符在 Base64 编码表中的索引
+        try:
+            i = base64_table.index(char)
+        except ValueError:
+            # 如果字符不在 Base64 编码表中，跳过当前偏移量
+            dec = None
+            break
+
+        # 计算新的索引，向后移动 offset 位（逆向偏移）
+        new_index = (i - n) % 64
+        # 根据新的索引找到对应的字符，并加入结果字符串
+        dec += base64_table[new_index]
+
+    if dec is None:
+        print(f"偏移 {n}: Invalid character encountered")
+        continue
+
+    # 添加必要的填充
+    padding = '=' * (-len(dec) % 4)
+    dec_padded = dec + padding
+
+    try:
+        # 尝试解码 Base64，如果成功则打印结果
+        flag = base64.b64decode(dec_padded).decode('utf-8')
+        print(f"偏移 {n}: {flag}")
+    except Exception:
+        # 如果 Base64 解码失败（无效编码字符串），跳过
+        print(f"偏移 {n}: Invalid Base64 string")
+```
+最终找到偏移量为50的时候时正确的flag
+![alt text](image-38.png)
