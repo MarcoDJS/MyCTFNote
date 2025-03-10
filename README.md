@@ -79,3 +79,44 @@ Web，SSTI，Jinja，Tornado
 - [GHCTF-2025-upload?SSTI!](https://www.nssctf.cn/contest/710/)
 - [护网杯 2018-easy_tornado](https://www.nssctf.cn/problem/175)
 - [GWCTF 2019-你的名字 ](https://www.nssctf.cn/problem/259)
+
+### 新生引导-ez_SSTI
+![alt text](image-12.png)
+点进NSS
+![alt text](image-13.png)
+题干有提示fenjing，所以去安装fenjing工具，启动工具
+```bash
+python -m fenjing webui
+```
+打开网页，扫描题目给的url<br>
+（注：这里有可能扫描的非常慢，解决方案是重启电脑。。）
+![alt text](image-14.png)
+上图为扫描后直接cat /flag的结果，找到flag
+
+### Cookie is so subtle!
+打开网页一共有两个主要界面，先看flag界面，可以输入用户名，输入后返回“Hello 用户名”,或许可以ssti注入，这里放一张经典判断网站模板的图
+![alt text](image-17.png)
+```
+{{7*'7'}}   49          Twig
+{{7*'7'}}   7777777     Jinja2
+```
+![alt text](image-18.png)
+![alt text](image-19.png)
+可以判断是twig框架，去找一个注入twig的模板
+```
+{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("z注入的bash命令")}}
+```
+为了找到flag位置，将注入命令设为find / -name flag
+![alt text](image-20.png)
+但发现不能直接注入，去看看hint界面，没什么东西
+![alt text](image-15.png)
+去看看源代码
+![alt text](image-21.png)
+提示让我们看看cookie，试试抓下包
+![alt text](image-22.png)
+放包后发现cookie行多了user变量，结合提示在这里修改应该就不会被拦了
+![alt text](image-23.png)
+![alt text](image-24.png)
+找到flag位置后注入cat /flag就可以看到flag了
+![alt text](image-25.png)
+![alt text](image-26.png)
