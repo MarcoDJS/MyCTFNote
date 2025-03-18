@@ -1,20 +1,6 @@
-# CTF笔记
-## 一.隐写
-### 1.二维码
----
-下载文件解压里面是二维码的图片<br>
-![图片](./images/QRcode/QR.png)<br>
-扫描出来<br>
-![扫描](./images/QRcode/content.png)<br>
-写的secret is here,但不是flag,所以可能是用隐写技术隐藏了信息，放进kali用foremost看看<br>
-![foremost](./images/QRcode/fm.png)<br>
-foremost出来一个zip文件，里面有4number.txt，需要密码，发现也不是secret is here，看wp发现要爆破，4number代表4位数字<br>
-![爆破](./images/QRcode/bp.png)<br>
-把7639输进去打开txt<br>
-![答案](./images/QRcode/ans.png)<br>
-包上flag{}发现不对，把CTF换成flag就对了<br>
-
-### 2.大白
+# 这里存一些做过的学到新东西的题
+## 一.MISC
+### 1.大白
 ![题目](./images/dabai/dabai.png)<br>
 下载题目提供的文件，发现是一张大白的图片<br>
 ![图片](./images/dabai/im.png)<br>
@@ -27,11 +13,10 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ![修改](./images/dabai/fix.png)<br>
 找到宽高位置，把高度256改为和宽度一样的679，保存图片后再次打开<br>
 ![图片](./images/dabai/ans.png)<br>
-多出来一大块透明区域显然调多了（<br>
-但无所谓答案已经出来了（<br>
-把flag{He1l0_d4_ba1}交上去就好啦<br>
+多出来一大块透明区域显然调多了，但无所谓答案已经出来了<br>
+找到flag{He1l0_d4_ba1}<br>
 
-### 3.LSB
+### 2.LSB
 下载图片<br>
 ![图片](./images/LSB/raw.png)<br>
 用之前的方法都无效，只能去找wp，发现题目LSB本身就是提示
@@ -48,7 +33,7 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ![答案](./images/LSB/ans.png)<br>
 提交flag{1sb_i4_s0_Ea4y}
 
-### 4.zip伪加密
+### 3.zip伪加密
 下载压缩包之后发现需要密码，唯一的提示是题干的伪加密<br>
 ![题目](./images/ZIP/t.png)<br>
 
@@ -61,9 +46,9 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ![修改](./images/ZIP/fix.png)<br>
 保存后压缩包就没有密码可以直接打开了
 ![答案](./images/ZIP/ans.png)<br>
-最后提交flag{Adm1N-B2G-kU-SZIP}！
+最后提交flag{Adm1N-B2G-kU-SZIP}
 
-### 5.FLAG
+### 4.FLAG
 下载图片<br>
 ![题目](./images/FLAG/img.png)<br>
 试了各种方法，发现是steg的隐写
@@ -71,17 +56,16 @@ foremost出来一个zip文件，里面有4number.txt，需要密码，发现也�
 ***
 **知识点.*<br>ZIP文件头:504B0304<br>RAR文件头：52617221<br>JPG文件头：FFD8FF<br>PNG文件头：89504E47<br>***
 ***
-看文件头发现是zip文件，所以保存为zip文件，但压缩包损坏（下载了一个nb的压缩软件损坏了照样解压，太凶了），解压出来发现是一个1，但没有后缀，用txt打开发现是乱的
+看文件头发现是zip文件，所以保存为zip文件，解压出来发现是一个1，但没有后缀，用txt打开发现是乱的
 ![解压](./images/FLAG/zip.png)<br>
 用IDA（新学到的静态反编译软件）打开
 ![IDA](./images/FLAG/ida.png)<br>
 ![IDA](./images/FLAG/ans.png)<br>
-找到flag{dd0gf4c3tok3yb0ard4g41n~~~}！
+找到flag{dd0gf4c3tok3yb0ard4g41n~~~}
 
-### 6.面具下的flag
+### 5.面具下的flag
 下载图片<br>
 ![题干](./images/mask/picture.png)<br>
-居然是君名，果然学计算机的二刺螈浓度比较高（<br>
 放到kali里面binwalk一下<br>
 ![题干](./images/mask/binwalk.png)<br>
 ***
@@ -108,40 +92,19 @@ Foremost更适合用于一般文件系统和磁盘镜像的文件恢复，特别
 发现是Ook编码，去翻译一下
 ![unOok](./images/mask/trans2.png)<br>
 把flag{N7F5_AD5_i5_funny!}提交上去就对了!<br>
-## 二.流量分析与取证
-### 1.大流量分析
-#### (1)
 
-![题干](./images/daliuliang/1T.png)<br>
-下载题目提供的流量包<br>
-![下载](./images/daliuliang/download.png)<br>
-确实大  好几个G（ <br/>
-用小鲨鱼wireshark打开第一个文件<br/>
-因为要查找黑客的ip，所以在统计中找到ipv4的数据，然后查看all adress<br>
-![查看](./images/daliuliang/ipv4.png)<br>
-把count从大到小排列，第一个占比57%的最活跃的ip大概率就是黑客的。<br>
-![找到](./images/daliuliang/values.png)<br>
-把flag{183.129.152.140}提交上去就ok了<br>
-
-#### (2)
+### 6.大流量分析(2)
 ![题干](./images/daliuliang/2T.png)<br>
-还是刚才那个流量包，用小鲨鱼打开<br/>
+还是刚才那个流量包，用wireshark打开<br/>
 因为要查找黑客的邮箱，所以筛选出SMTP的协议<br>
 ![smtp知识点](./images/daliuliang/smtp.png)<br>
 发现红圈里面有MAIL FROM一个邮箱，并且后面标注了Sender，推测这个就是黑客发来邮件的邮箱。<br>
 ![筛选](./images/daliuliang/filter.png)<br>
 把flag{xsser@live.cn}提交上去就ok了<br>
 
-#### (3)
-![题干](./images/daliuliang/3T.png)<br>
-看别人的wp似乎是道价值不大的烂题（<br/>
-似乎直接搜索phpinfo逻辑不强？不懂 以后懂了再来补（<br>
-![wp1](./images/daliuliang/ans1.png)<br>
-![wp2](./images/daliuliang/ans2.png)<br>
-
-### 2.菜刀666
+### 7.菜刀666
 ![题干](./images/caidao/T.png)<br>
-下载文件后解压，里面有.pcapng的文件，用小鲨鱼打开<br/>
+下载文件后解压，里面有.pcapng的文件，用wireshark打开<br/>
 中国菜刀是一个webshell管理工具，一般用POST进行上传，所以在小鲨鱼的过滤器中输入http.request.method==POST进行过滤<br>
 ![过滤](./images/caidao/ws.png)<br>
 追踪一下tcp流，在第七个流中发现可疑数据<br>
@@ -166,15 +129,15 @@ Foremost更适合用于一般文件系统和磁盘镜像的文件恢复，特别
 ![解压](./images/caidao/flag.png)<br>
 把flag{3OpWdJ-JP6FzK-koCMAK-VkfWBq-75Un2z}交上去就ok了<br>
 
-## 三.Web
+## 二.Web
 ### 1.Havingfun
-打开靶机和网站，发现只有一只猫猫（可爱捏）
+打开靶机和网站，发现只有一只猫猫
 ![图片](./images/Havingfun/cat.png)<br>
 网页本身没有可交互的地方，所以打开开发者工具做一下代码审计
 ![开发人员工具](./images/Havingfun/check.png)<br>
 ![代码](./images/Havingfun/code.png)<br>
 ***
-**知识点.<br>*在php语法中，$_GET表示当用户访问一个URL并在其后附带查询字符串（即?key=value的形式）时，服务器通过GET请求接收数据。这些数据会自动被存储在$_GET数组中。<br>*例如：![示例](./images/Havingfun/get.png)<br>**
+**知识点.<br>在php语法中，$_GET表示当用户访问一个URL并在其后附带查询字符串（即?key=value的形式）时，服务器通过GET请求接收数据。这些数据会自动被存储在$_GET数组中。<br>例如：**![示例](./images/Havingfun/get.png)<br>
 ***
 发现当cat=dog的时候会输出一些东西<br>
 因此可以构造payload在网页地址栏输入/?cat=dog来查询变量cat=值dog时的情况
